@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: Monew
+  config:
+    import: optional:application-secret.yaml
+
+naver:
+  client:
+    id: ${NAVER_CLIENT_ID:your_client_id_here}
+    secret: ${NAVER_CLIENT_SECRET:your_client_secret_here}
