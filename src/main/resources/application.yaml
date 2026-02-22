@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: Monew
+  config:
+    import: optional:application-secret.yaml
+  datasource:
+    url: jdbc:h2:mem:monew_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+naver:
+  client:
+    id: ${NAVER_CLIENT_ID:your_client_id_here}
+    secret: ${NAVER_CLIENT_SECRET:your_client_secret_here}
