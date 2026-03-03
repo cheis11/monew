@@ -1,7 +1,9 @@
 package com.codeit.monew.user.controller;
 
-import com.codeit.monew.user.dto.AuthRequest;
+import com.codeit.monew.user.dto.UserDto;
+import com.codeit.monew.user.dto.UserRegisterRequest;
 import com.codeit.monew.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,16 +12,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class AuthController {
+public class UserController {
 
     private final UserService userService;
 
-    // Placeholder for actual login logic, this will need Session or JWT
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthRequest request) {
-        // Here we just acknowledge it for now.
-        return ResponseEntity.ok("Login endpoint ready. Not fully implemented yet.");
+    @PostMapping
+    public ResponseEntity<UserDto> registerUser(@Valid @RequestBody UserRegisterRequest request) {
+        UserDto registeredUser = userService.registerUser(request);
+        return ResponseEntity.ok(registeredUser);
     }
 }

@@ -32,6 +32,7 @@ public class SecurityConfig {
                                                                 "/assets/**",
                                                                 "/fonts/**",
                                                                 "/api/test/**",
+                                                                "/api/users/**",
                                                                 "/api/auth/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
