@@ -19,7 +19,7 @@ public class SecurityConfig {
                 http
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .headers(headers -> headers
-                                                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                                                .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                                 .authorizeHttpRequests(authorize -> authorize
                                                 .requestMatchers(
                                                                 org.springframework.boot.security.autoconfigure.web.servlet.PathRequest
@@ -27,6 +27,7 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .requestMatchers(
                                                                 "/",
+                                                                "/error",
                                                                 "/index.html",
                                                                 "/assets/**",
                                                                 "/fonts/**",
