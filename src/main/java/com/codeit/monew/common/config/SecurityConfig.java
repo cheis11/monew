@@ -29,6 +29,7 @@ public class SecurityConfig {
                                                                 "/",
                                                                 "/error",
                                                                 "/index.html",
+                                                                "/favicon.ico",
                                                                 "/assets/**",
                                                                 "/fonts/**",
                                                                 "/api/test/**",
