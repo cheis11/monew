@@ -53,7 +53,7 @@ public class ArticleSyncService {
             try {
                 NaverNewsSearchRequest request = NaverNewsSearchRequest.builder()
                         .query(keyword)
-                        .display(10)
+                        .display(100)
                         .sort("sim")
                         .build();
 
