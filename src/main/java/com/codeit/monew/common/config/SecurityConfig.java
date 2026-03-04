@@ -33,6 +33,7 @@ public class SecurityConfig {
                                                                 "/fonts/**",
                                                                 "/api/test/**",
                                                                 "/api/users/**",
+                                                                "/api/articles/**",
                                                                 "/api/auth/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
