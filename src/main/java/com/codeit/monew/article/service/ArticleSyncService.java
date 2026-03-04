@@ -51,14 +51,26 @@ public class ArticleSyncService {
 
         for (String keyword : keywords) {
             try {
-                NaverNewsSearchRequest request = NaverNewsSearchRequest.builder()
-                        .query(keyword)
-                        .display(100)
-                        .sort("sim")
-                        .build();
+                int totalFetched = 0;
+                for (int start = 1; start <= 1000; start += 100) {
+                    NaverNewsSearchRequest request = NaverNewsSearchRequest.builder()
+                            .query(keyword)
+                            .display(100)
+                            .start(start)
+                            .sort("sim")
+                            .build();
 
-                NaverNewsSearchResponse response = naverNewsClient.searchNews(request);
-                saveArticlesFromResponse(response);
+                    NaverNewsSearchResponse response = naverNewsClient.searchNews(request);
+                    if (response.items() == null || response.items().isEmpty()) {
+                        break; // No more results for this keyword
+                    }
+                    saveArticlesFromResponse(response);
+                    totalFetched += response.items().size();
+
+                    // Added a sleep to prevent hitting Naver API rate limits too quickly
+                    Thread.sleep(100);
+                }
+                log.info("Fetched {} articles for keyword: {}", totalFetched, keyword);
             } catch (Exception e) {
                 log.error("Failed to sync news for keyword: {}", keyword, e);
             }
