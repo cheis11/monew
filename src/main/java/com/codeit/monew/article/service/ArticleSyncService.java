@@ -45,8 +45,8 @@ public class ArticleSyncService {
                 .collect(Collectors.toSet());
 
         if (keywords.isEmpty()) {
-            log.info("No keywords found. Searching for default keyword: '경제'");
-            keywords.add("경제");
+            log.info("No keywords found. Searching for default keyword: '현대차'");
+            keywords.add("현대차");
         }
 
         for (String keyword : keywords) {
