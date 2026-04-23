@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.codeit.monew.article.dto.CursorPageResponseArticleDto;
 import com.codeit.monew.article.service.ArticleService;
 import java.time.LocalDateTime;
-import org.springframework.format.annotation.DateTimeFormat;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -31,20 +31,39 @@ public class ArticleController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UUID interestId,
             @RequestParam(required = false) String sourceIn,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime publishDateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime publishDateTo,
+            @RequestParam(required = false) String publishDateFrom,
+            @RequestParam(required = false) String publishDateTo,
             @RequestParam(defaultValue = "publishDate") String orderBy,
             @RequestParam(defaultValue = "DESC") String direction,
             @RequestParam(required = false) String cursor,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
+            @RequestParam(required = false) String after,
             @RequestParam(defaultValue = "10") int limit,
             @RequestHeader(value = "Monew-Request-User-Id", required = false) UUID userId) {
 
+        LocalDateTime from = parseDateTime(publishDateFrom);
+        LocalDateTime to = parseDateTime(publishDateTo);
+        LocalDateTime afterLocal = parseDateTime(after);
+
         CursorPageResponseArticleDto response = articleService.getArticles(
-                keyword, interestId, sourceIn, publishDateFrom, publishDateTo,
-                orderBy, direction, cursor, after, limit, userId);
+                keyword, interestId, sourceIn, from, to,
+                orderBy, direction, cursor, afterLocal, limit, userId);
 
         return ResponseEntity.ok(response);
+    }
+
+    private LocalDateTime parseDateTime(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            if (dateStr.endsWith("Z") || dateStr.contains("+")
+                    || (dateStr.contains("-") && dateStr.lastIndexOf("-") > 10)) {
+                return java.time.ZonedDateTime.parse(dateStr).toLocalDateTime();
+            }
+            return LocalDateTime.parse(dateStr);
+        } catch (Exception e) {
+            throw new com.codeit.monew.common.exception.NotFoundException("Invalid date format: " + dateStr); // Throw             // handling
+        }
     }
 
     @PostMapping("/{articleId}/article-views")
