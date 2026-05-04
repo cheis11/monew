@@ -53,4 +53,21 @@ public class SubscriptionService {
                 .createdAt(savedSubscription.getCreatedAt())
                 .build();
     }
+
+    @Transactional
+    public void unsubscribeInterest(UUID interestId, UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("사용자를 찾을 수 없습니다.");
+        }
+
+        Interest interest = interestRepository.findById(interestId)
+                .orElseThrow(() -> new NotFoundException("관심사를 찾을 수 없습니다."));
+
+        if (!subscriptionRepository.existsByUserIdAndInterestId(userId, interestId)) {
+            throw new NotFoundException("구독 중인 관심사가 아닙니다.");
+        }
+
+        subscriptionRepository.deleteByUserIdAndInterestId(userId, interestId);
+        interest.decreaseSubscriberCount();
+    }
 }
