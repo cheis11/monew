@@ -7,11 +7,6 @@ import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.repository.InterestRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +14,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -45,20 +45,32 @@ public class ArticleSyncService {
                 .collect(Collectors.toSet());
 
         if (keywords.isEmpty()) {
-            log.info("No keywords found. Searching for default keyword: '현대차'");
-            keywords.add("현대차");
+            log.info("No keywords found from interests. Skipping scheduled news article sync.");
+            return;
         }
 
         for (String keyword : keywords) {
             try {
-                NaverNewsSearchRequest request = NaverNewsSearchRequest.builder()
-                        .query(keyword)
-                        .display(100)
-                        .sort("sim")
-                        .build();
+                int totalFetched = 0;
+                for (int start = 1; start <= 1000; start += 100) {
+                    NaverNewsSearchRequest request = NaverNewsSearchRequest.builder()
+                            .query(keyword)
+                            .display(100)
+                            .start(start)
+                            .sort("sim")
+                            .build();
 
-                NaverNewsSearchResponse response = naverNewsClient.searchNews(request);
-                saveArticlesFromResponse(response);
+                    NaverNewsSearchResponse response = naverNewsClient.searchNews(request);
+                    if (response.items() == null || response.items().isEmpty()) {
+                        break; // No more results for this keyword
+                    }
+                    saveArticlesFromResponse(response);
+                    totalFetched += response.items().size();
+
+                    // Added a sleep to prevent hitting Naver API rate limits too quickly
+                    Thread.sleep(100);
+                }
+                log.info("Fetched {} articles for keyword: {}", totalFetched, keyword);
             } catch (Exception e) {
                 log.error("Failed to sync news for keyword: {}", keyword, e);
             }
