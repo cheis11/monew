@@ -30,4 +30,47 @@ public class UserController {
         UserDto loggedInUser = userService.login(request);
         return ResponseEntity.ok(loggedInUser);
     }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/{userId}")
+    public ResponseEntity<UserDto> updateUser(
+            @org.springframework.web.bind.annotation.PathVariable java.util.UUID userId,
+            @Valid @RequestBody com.codeit.monew.user.dto.UserUpdateRequest request,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "MoNew-Request-User-ID", required = false) java.util.UUID headerUserId) {
+        
+        // Authorization check
+        if (headerUserId == null || !headerUserId.equals(userId)) {
+            throw new com.codeit.monew.common.exception.UnauthorizedException("권한이 없습니다.");
+        }
+        
+        UserDto updatedUser = userService.updateUser(userId, request);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(
+            @org.springframework.web.bind.annotation.PathVariable java.util.UUID userId,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "MoNew-Request-User-ID", required = false) java.util.UUID headerUserId) {
+        
+        // Authorization check
+        if (headerUserId == null || !headerUserId.equals(userId)) {
+            throw new com.codeit.monew.common.exception.UnauthorizedException("권한이 없습니다.");
+        }
+        
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{userId}/hard")
+    public ResponseEntity<Void> hardDeleteUser(
+            @org.springframework.web.bind.annotation.PathVariable java.util.UUID userId,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "MoNew-Request-User-ID", required = false) java.util.UUID headerUserId) {
+        
+        // Authorization check
+        if (headerUserId == null || !headerUserId.equals(userId)) {
+            throw new com.codeit.monew.common.exception.UnauthorizedException("권한이 없습니다.");
+        }
+        
+        userService.hardDeleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

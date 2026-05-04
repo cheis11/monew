@@ -8,40 +8,44 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
-import org.springframework.core.annotation.Order;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                http
-                                .csrf(AbstractHttpConfigurer::disable)
-                                .headers(headers -> headers
-                                                .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                                .authorizeHttpRequests(authorize -> authorize
-                                                .requestMatchers(
-                                                                org.springframework.boot.security.autoconfigure.web.servlet.PathRequest
-                                                                                .toH2Console())
-                                                .permitAll()
-                                                .requestMatchers(
-                                                                "/",
-                                                                "/error",
-                                                                "/index.html",
-                                                                "/favicon.ico",
-                                                                "/assets/**",
-                                                                "/fonts/**",
-                                                                "/api/test/**",
-                                                                "/api/users/**",
-                                                                "/api/articles/**",
-                                                                "/api/interests/**",
-                                                                "/api/auth/**")
-                                                .permitAll()
-                                                .anyRequest().authenticated())
-                                .formLogin(AbstractHttpConfigurer::disable); // Custom login UI will be handled by the
-                                                                             // frontend
+  private final HeaderAuthenticationFilter headerAuthenticationFilter;
 
-                return http.build();
-        }
+  public SecurityConfig(HeaderAuthenticationFilter headerAuthenticationFilter) {
+    this.headerAuthenticationFilter = headerAuthenticationFilter;
+  }
+
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(AbstractHttpConfigurer::disable)
+        .headers(headers -> headers
+            .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+        .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers(
+                org.springframework.boot.security.autoconfigure.web.servlet.PathRequest.toH2Console())
+            .permitAll()
+            .requestMatchers(
+                "/",
+                "/error",
+                "/index.html",
+                "/favicon.ico",
+                "/assets/**",
+                "/fonts/**",
+                "/api/test/**",
+                "/api/articles/**",
+                "/api/interests/**",
+                "/api/auth/**")
+            .permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users", "/api/users/login")
+            .permitAll()
+            .anyRequest().authenticated())
+        .addFilterBefore(headerAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+        .formLogin(AbstractHttpConfigurer::disable);
+
+    return http.build();
+  }
 }
