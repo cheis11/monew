@@ -53,4 +53,30 @@ public class InterestController {
 
         return ResponseEntity.ok(response);
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{interestId}/subscriptions")
+    public ResponseEntity<Void> unsubscribeInterest(
+            @PathVariable java.util.UUID interestId,
+            @RequestHeader(value = "Monew-Request-User-ID") java.util.UUID userId) {
+        
+        subscriptionService.unsubscribeInterest(interestId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/{interestId}")
+    public ResponseEntity<InterestDto> updateInterest(
+            @PathVariable java.util.UUID interestId,
+            @Valid @RequestBody com.codeit.monew.interest.dto.InterestUpdateRequest request) {
+        
+        InterestDto updatedInterest = interestService.updateInterest(interestId, request);
+        return ResponseEntity.ok(updatedInterest);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{interestId}")
+    public ResponseEntity<Void> deleteInterest(
+            @PathVariable java.util.UUID interestId) {
+        
+        interestService.deleteInterest(interestId);
+        return ResponseEntity.noContent().build();
+    }
 }

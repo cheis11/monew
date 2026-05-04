@@ -109,6 +109,32 @@ public class InterestService {
                                 .hasNext(hasNext)
                                 .build();
         }
+
+        @Transactional
+        public InterestDto updateInterest(UUID interestId, InterestUpdateRequest request) {
+                Interest interest = interestRepository.findById(interestId)
+                                .orElseThrow(() -> new NotFoundException("관심사를 찾을 수 없습니다."));
+
+                interest.updateKeywords(request.getKeywords());
+
+                return InterestDto.builder()
+                                .id(interest.getId())
+                                .name(interest.getName())
+                                .keywords(interest.getKeywords())
+                                .subscriberCount(interest.getSubscriberCount())
+                                .subscribedByMe(false)
+                                .build();
+        }
+
+        @Transactional
+        public void deleteInterest(UUID interestId) {
+                Interest interest = interestRepository.findById(interestId)
+                                .orElseThrow(() -> new NotFoundException("관심사를 찾을 수 없습니다."));
+
+                subscriptionRepository.deleteByInterestId(interestId);
+                interestRepository.delete(interest);
+        }
+
         private double calculateSimilarity(String s1, String s2) {
                 int maxLength = Math.max(s1.length(), s2.length());
                 if (maxLength == 0) return 1.0;
