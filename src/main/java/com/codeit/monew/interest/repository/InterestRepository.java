@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface InterestRepository extends JpaRepository<Interest, UUID>, JpaSpecificationExecutor<Interest> {
     boolean existsByName(String name);
+
+    @org.springframework.data.jpa.repository.Query("SELECT i.name FROM Interest i")
+    java.util.List<String> findAllNames();
 }
