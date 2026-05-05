@@ -16,6 +16,8 @@ import lombok.ToString;
 @ToString
 @Table(name = "article")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@org.hibernate.annotations.SQLDelete(sql = "UPDATE article SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
 public class Article extends AbstractEntity {
 
     @Column(nullable = false)

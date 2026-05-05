@@ -1,6 +1,7 @@
 package com.codeit.monew.article.service;
 
 import com.codeit.monew.article.dto.ArticleDto;
+import com.codeit.monew.article.dto.ArticleRestoreResultDto;
 import com.codeit.monew.article.dto.CursorPageResponseArticleDto;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
@@ -113,4 +114,20 @@ public class ArticleService {
                 .hasNext(hasNext)
                 .build();
     }
+
+    @Transactional
+    public void deleteArticle(UUID articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new NotFoundException("뉴스 기사를 찾을 수 없습니다."));
+        articleRepository.delete(article);
+    }
+
+    @Transactional
+    public void hardDeleteArticle(UUID articleId) {
+        if (!articleRepository.existsById(articleId)) {
+            throw new NotFoundException("뉴스 기사를 찾을 수 없습니다.");
+        }
+        articleRepository.hardDeleteById(articleId);
+    }
+
 }

@@ -74,4 +74,21 @@ public class ArticleController {
         ArticleViewDto result = articleViewService.recordArticleView(articleId, userId);
         return ResponseEntity.ok(result);
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{articleId}")
+    public ResponseEntity<Void> deleteArticle(
+            @PathVariable java.util.UUID articleId) {
+        
+        articleService.deleteArticle(articleId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{articleId}/hard")
+    public ResponseEntity<Void> hardDeleteArticle(
+            @PathVariable java.util.UUID articleId) {
+        
+        articleService.hardDeleteArticle(articleId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
