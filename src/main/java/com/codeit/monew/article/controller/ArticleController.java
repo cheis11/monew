@@ -100,4 +100,21 @@ public class ArticleController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/sources")
+    public ResponseEntity<java.util.List<String>> getSources() {
+        java.util.List<String> sources = articleService.getSources();
+        return ResponseEntity.ok(sources);
+    }
+
+    @GetMapping("/restore")
+    public ResponseEntity<java.util.List<com.codeit.monew.article.dto.ArticleRestoreResultDto>> restoreArticles(
+            @RequestParam String from,
+            @RequestParam String to) {
+        
+        LocalDateTime fromTime = parseDateTime(from);
+        LocalDateTime toTime = parseDateTime(to);
+
+        java.util.List<com.codeit.monew.article.dto.ArticleRestoreResultDto> results = articleService.restoreArticles(fromTime, toTime);
+        return ResponseEntity.ok(results);
+    }
 }

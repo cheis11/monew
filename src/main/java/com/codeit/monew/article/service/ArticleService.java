@@ -148,4 +148,14 @@ public class ArticleService {
         articleRepository.hardDeleteById(articleId);
     }
 
+    @Transactional(readOnly = true)
+    public List<String> getSources() {
+        return articleRepository.findDistinctSource();
+    }
+
+    @Transactional
+    public List<ArticleRestoreResultDto> restoreArticles(LocalDateTime from, LocalDateTime to) {
+        // TODO: S3 backup is not implemented yet. This is a stub.
+        return java.util.Collections.emptyList();
+    }
 }

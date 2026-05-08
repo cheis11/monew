@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface ArticleRepository extends JpaRepository<Article, UUID>, JpaSpecificationExecutor<Article> {
     boolean existsBySourceUrl(String sourceUrl);
 
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT a.source FROM Article a")
+    java.util.List<String> findDistinctSource();
+
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.data.jpa.repository.Query(value = "DELETE FROM article WHERE id = :articleId", nativeQuery = true)
     void hardDeleteById(@org.springframework.data.repository.query.Param("articleId") UUID articleId);
