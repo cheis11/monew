@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 public class ArticleSpecification {
 
     public static Specification<Article> filterArticles(
-            String keyword,
+            List<String> keywords,
             UUID interestId,
             String sourceIn,
             LocalDateTime publishDateFrom,
@@ -25,11 +25,19 @@ public class ArticleSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // 1. Keyword search (title or summary)
-            if (keyword != null && !keyword.isBlank()) {
-                String likeKeyword = "%" + keyword + "%";
-                Predicate titlePredicate = cb.like(root.get("title"), likeKeyword);
-                Predicate summaryPredicate = cb.like(root.get("summary"), likeKeyword);
-                predicates.add(cb.or(titlePredicate, summaryPredicate));
+            if (keywords != null && !keywords.isEmpty()) {
+                List<Predicate> keywordPredicates = new ArrayList<>();
+                for (String k : keywords) {
+                    if (k != null && !k.isBlank()) {
+                        String likeKeyword = "%" + k + "%";
+                        Predicate titlePredicate = cb.like(root.get("title"), likeKeyword);
+                        Predicate summaryPredicate = cb.like(root.get("summary"), likeKeyword);
+                        keywordPredicates.add(cb.or(titlePredicate, summaryPredicate));
+                    }
+                }
+                if (!keywordPredicates.isEmpty()) {
+                    predicates.add(cb.or(keywordPredicates.toArray(new Predicate[0])));
+                }
             }
 
             // 2. Interest ID filter (requires join with Interest keywords if applicable,
