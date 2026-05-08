@@ -1,6 +1,7 @@
 package com.codeit.monew.article.service;
 
 import com.codeit.monew.article.dto.ArticleDto;
+import com.codeit.monew.article.dto.ArticleRestoreResultDto;
 import com.codeit.monew.article.dto.CursorPageResponseArticleDto;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
@@ -112,5 +113,49 @@ public class ArticleService {
                 .totalElements(articlePage.getTotalElements()) // This is an estimate unless we run count query
                 .hasNext(hasNext)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ArticleDto getArticle(UUID articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new NotFoundException("뉴스 기사를 찾을 수 없습니다."));
+
+        return ArticleDto.builder()
+                .id(article.getId())
+                .source(article.getSource())
+                .sourceUrl(article.getSourceUrl())
+                .title(article.getTitle())
+                .publishDate(article.getPublishDate())
+                .summary(article.getSummary())
+                .commentCount(0)
+                .viewCount(article.getViewCount())
+                .viewedByMe(false) // This would require user context to determine
+                .build();
+    }
+
+    @Transactional
+    public void deleteArticle(UUID articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new NotFoundException("뉴스 기사를 찾을 수 없습니다."));
+        articleRepository.delete(article);
+    }
+
+    @Transactional
+    public void hardDeleteArticle(UUID articleId) {
+        if (!articleRepository.existsById(articleId)) {
+            throw new NotFoundException("뉴스 기사를 찾을 수 없습니다.");
+        }
+        articleRepository.hardDeleteById(articleId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getSources() {
+        return articleRepository.findDistinctSource();
+    }
+
+    @Transactional
+    public List<ArticleRestoreResultDto> restoreArticles(LocalDateTime from, LocalDateTime to) {
+        // TODO: S3 backup is not implemented yet. This is a stub.
+        return java.util.Collections.emptyList();
     }
 }

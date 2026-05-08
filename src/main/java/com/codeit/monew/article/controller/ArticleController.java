@@ -74,4 +74,47 @@ public class ArticleController {
         ArticleViewDto result = articleViewService.recordArticleView(articleId, userId);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/{articleId}")
+    public ResponseEntity<com.codeit.monew.article.dto.ArticleDto> getArticle(
+            @PathVariable java.util.UUID articleId,
+            @RequestHeader(value = "Monew-Request-User-Id", required = false) java.util.UUID userId) {
+        
+        com.codeit.monew.article.dto.ArticleDto result = articleService.getArticle(articleId);
+        return ResponseEntity.ok(result);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{articleId}")
+    public ResponseEntity<Void> deleteArticle(
+            @PathVariable java.util.UUID articleId) {
+        
+        articleService.deleteArticle(articleId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{articleId}/hard")
+    public ResponseEntity<Void> hardDeleteArticle(
+            @PathVariable java.util.UUID articleId) {
+        
+        articleService.hardDeleteArticle(articleId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/sources")
+    public ResponseEntity<java.util.List<String>> getSources() {
+        java.util.List<String> sources = articleService.getSources();
+        return ResponseEntity.ok(sources);
+    }
+
+    @GetMapping("/restore")
+    public ResponseEntity<java.util.List<com.codeit.monew.article.dto.ArticleRestoreResultDto>> restoreArticles(
+            @RequestParam String from,
+            @RequestParam String to) {
+        
+        LocalDateTime fromTime = parseDateTime(from);
+        LocalDateTime toTime = parseDateTime(to);
+
+        java.util.List<com.codeit.monew.article.dto.ArticleRestoreResultDto> results = articleService.restoreArticles(fromTime, toTime);
+        return ResponseEntity.ok(results);
+    }
 }
