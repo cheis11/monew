@@ -115,6 +115,24 @@ public class ArticleService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public ArticleDto getArticle(UUID articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new NotFoundException("뉴스 기사를 찾을 수 없습니다."));
+
+        return ArticleDto.builder()
+                .id(article.getId())
+                .source(article.getSource())
+                .sourceUrl(article.getSourceUrl())
+                .title(article.getTitle())
+                .publishDate(article.getPublishDate())
+                .summary(article.getSummary())
+                .commentCount(0)
+                .viewCount(article.getViewCount())
+                .viewedByMe(false) // This would require user context to determine
+                .build();
+    }
+
     @Transactional
     public void deleteArticle(UUID articleId) {
         Article article = articleRepository.findById(articleId)
