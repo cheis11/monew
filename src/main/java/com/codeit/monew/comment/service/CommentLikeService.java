@@ -7,6 +7,7 @@ import com.codeit.monew.comment.repository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.common.exception.ConflictException;
 import com.codeit.monew.common.exception.NotFoundException;
+import com.codeit.monew.notification.service.NotificationService;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 import java.util.UUID;
@@ -21,6 +22,7 @@ public class CommentLikeService {
     private final CommentLikeRepository commentLikeRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public CommentLikeDto likeComment(UUID commentId, UUID userId) {
@@ -40,6 +42,16 @@ public class CommentLikeService {
 
         CommentLike savedLike = commentLikeRepository.save(commentLike);
         comment.increaseLikeCount();
+
+        // Create notification if the liker is not the author of the comment
+        if (!comment.getUser().getId().equals(user.getId())) {
+            notificationService.createNotification(
+                    comment.getUser(),
+                    String.format("%s님이 나의 댓글을 좋아합니다.", user.getNickname()),
+                    "comment",
+                    comment.getId()
+            );
+        }
 
         return CommentLikeDto.builder()
                 .id(savedLike.getId())
