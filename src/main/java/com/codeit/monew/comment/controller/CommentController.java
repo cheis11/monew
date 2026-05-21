@@ -41,7 +41,7 @@ public class CommentController {
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) String after,
             @RequestParam(defaultValue = "50") int limit,
-            @RequestHeader("Monew-Request-User-ID") UUID userId) {
+            @RequestHeader(value = "Monew-Request-User-ID", required = false) UUID userId) {
 
         LocalDateTime afterTime = parseDateTime(after);
 
