@@ -1,5 +1,6 @@
 package com.codeit.monew.user.controller;
 
+import com.codeit.monew.common.exception.UnauthorizedException;
 import com.codeit.monew.user.dto.UserDto;
 import com.codeit.monew.user.dto.UserLoginRequest;
 import com.codeit.monew.user.dto.UserRegisterRequest;
@@ -39,7 +40,7 @@ public class UserController {
         
         // Authorization check
         if (headerUserId == null || !headerUserId.equals(userId)) {
-            throw new com.codeit.monew.common.exception.UnauthorizedException("권한이 없습니다.");
+            throw new UnauthorizedException("권한이 없습니다.");
         }
         
         UserDto updatedUser = userService.updateUser(userId, request);
@@ -53,7 +54,7 @@ public class UserController {
         
         // Authorization check
         if (headerUserId == null || !headerUserId.equals(userId)) {
-            throw new com.codeit.monew.common.exception.UnauthorizedException("권한이 없습니다.");
+            throw new UnauthorizedException("권한이 없습니다.");
         }
         
         userService.deleteUser(userId);
@@ -67,7 +68,7 @@ public class UserController {
         
         // Authorization check
         if (headerUserId == null || !headerUserId.equals(userId)) {
-            throw new com.codeit.monew.common.exception.UnauthorizedException("권한이 없습니다.");
+            throw new UnauthorizedException("권한이 없습니다.");
         }
         
         userService.hardDeleteUser(userId);
