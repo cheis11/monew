@@ -36,7 +36,7 @@ public class CommentService {
     @Transactional
     public CommentDto registerComment(CommentRegisterRequest request) {
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
         Article article = articleRepository.findById(request.getArticleId())
                 .orElseThrow(() -> new NotFoundException("Article not found"));
 

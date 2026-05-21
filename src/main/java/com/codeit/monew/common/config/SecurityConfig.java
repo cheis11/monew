@@ -42,6 +42,10 @@ public class SecurityConfig {
             .permitAll()
             .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users", "/api/users/login")
             .permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/comments")
+            .permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/comments/**")
+            .permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(headerAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
         .formLogin(AbstractHttpConfigurer::disable);
