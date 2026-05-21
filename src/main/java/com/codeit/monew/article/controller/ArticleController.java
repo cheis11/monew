@@ -2,6 +2,7 @@ package com.codeit.monew.article.controller;
 
 import com.codeit.monew.article.dto.ArticleViewDto;
 import com.codeit.monew.article.service.ArticleViewService;
+import com.codeit.monew.common.exception.NotFoundException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,7 @@ public class ArticleController {
             }
             return LocalDateTime.parse(dateStr);
         } catch (Exception e) {
-            throw new com.codeit.monew.common.exception.NotFoundException("Invalid date format: " + dateStr); // Throw             // handling
+            throw new NotFoundException("Invalid date format: " + dateStr);
         }
     }
 

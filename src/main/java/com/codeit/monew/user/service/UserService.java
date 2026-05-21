@@ -1,5 +1,6 @@
 package com.codeit.monew.user.service;
 
+import com.codeit.monew.common.exception.NotFoundException;
 import com.codeit.monew.common.exception.UnauthorizedException;
 import com.codeit.monew.user.dto.UserDto;
 import com.codeit.monew.user.dto.UserLoginRequest;
@@ -59,7 +60,7 @@ public class UserService {
     @Transactional
     public UserDto updateUser(java.util.UUID userId, com.codeit.monew.user.dto.UserUpdateRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new com.codeit.monew.common.exception.NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
         
         user.update(request.getNickname());
         
@@ -74,7 +75,7 @@ public class UserService {
     @Transactional
     public void deleteUser(java.util.UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new com.codeit.monew.common.exception.NotFoundException("User not found");
+            throw new NotFoundException("User not found");
         }
         userRepository.deleteById(userId);
     }
@@ -82,7 +83,7 @@ public class UserService {
     @Transactional
     public void hardDeleteUser(java.util.UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new com.codeit.monew.common.exception.NotFoundException("User not found");
+            throw new NotFoundException("User not found");
         }
         userRepository.hardDeleteById(userId);
     }

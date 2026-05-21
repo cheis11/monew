@@ -7,6 +7,7 @@ import com.codeit.monew.comment.dto.CommentUpdateRequest;
 import com.codeit.monew.comment.dto.CursorPageResponseCommentDto;
 import com.codeit.monew.comment.service.CommentLikeService;
 import com.codeit.monew.comment.service.CommentService;
+import com.codeit.monew.common.exception.NotFoundException;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -105,7 +106,7 @@ public class CommentController {
             }
             return LocalDateTime.parse(dateStr);
         } catch (Exception e) {
-            throw new com.codeit.monew.common.exception.NotFoundException("Invalid date format: " + dateStr);
+            throw new NotFoundException("Invalid date format: " + dateStr);
         }
     }
 }
