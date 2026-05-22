@@ -2,6 +2,7 @@ package com.codeit.monew.article.controller;
 
 import com.codeit.monew.article.dto.ArticleViewDto;
 import com.codeit.monew.article.service.ArticleViewService;
+import com.codeit.monew.common.exception.NotFoundException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class ArticleController {
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) String after,
             @RequestParam(defaultValue = "10") int limit,
-            @RequestHeader(value = "Monew-Request-User-Id", required = false) UUID userId) {
+            @RequestHeader(value = "Monew-Request-User-ID", required = false) UUID userId) {
 
         LocalDateTime from = parseDateTime(publishDateFrom);
         LocalDateTime to = parseDateTime(publishDateTo);
@@ -62,14 +63,14 @@ public class ArticleController {
             }
             return LocalDateTime.parse(dateStr);
         } catch (Exception e) {
-            throw new com.codeit.monew.common.exception.NotFoundException("Invalid date format: " + dateStr); // Throw             // handling
+            throw new NotFoundException("Invalid date format: " + dateStr);
         }
     }
 
     @PostMapping("/{articleId}/article-views")
     public ResponseEntity<ArticleViewDto> recordArticleView(
             @PathVariable UUID articleId,
-            @RequestHeader(value = "Monew-Request-User-Id") UUID userId) {
+            @RequestHeader(value = "Monew-Request-User-ID") UUID userId) {
 
         ArticleViewDto result = articleViewService.recordArticleView(articleId, userId);
         return ResponseEntity.ok(result);
@@ -78,9 +79,9 @@ public class ArticleController {
     @GetMapping("/{articleId}")
     public ResponseEntity<com.codeit.monew.article.dto.ArticleDto> getArticle(
             @PathVariable java.util.UUID articleId,
-            @RequestHeader(value = "Monew-Request-User-Id", required = false) java.util.UUID userId) {
+            @RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID userId) {
         
-        com.codeit.monew.article.dto.ArticleDto result = articleService.getArticle(articleId);
+        com.codeit.monew.article.dto.ArticleDto result = articleService.getArticle(articleId, userId);
         return ResponseEntity.ok(result);
     }
 

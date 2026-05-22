@@ -20,6 +20,7 @@ public class ArticleViewService {
     private final ArticleViewRepository articleViewRepository;
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
+    private final jakarta.persistence.EntityManager entityManager;
 
     @Transactional
     public ArticleViewDto recordArticleView(UUID articleId, UUID userId) {
@@ -38,6 +39,11 @@ public class ArticleViewService {
 
         articleViewRepository.save(articleView);
 
+        long commentCount = entityManager.createQuery(
+                "SELECT COUNT(c) FROM Comment c WHERE c.article.id = :articleId", Long.class)
+                .setParameter("articleId", articleId)
+                .getSingleResult();
+
         return ArticleViewDto.builder()
                 .id(articleView.getId())
                 .viewedBy(user.getId())
@@ -48,7 +54,7 @@ public class ArticleViewService {
                 .articleTitle(article.getTitle())
                 .articlePublishedDate(article.getPublishDate())
                 .articleSummary(article.getSummary())
-                .articleCommentCount(0) // Currently no comment feature implemented
+                .articleCommentCount(commentCount)
                 .articleViewCount(article.getViewCount())
                 .build();
     }

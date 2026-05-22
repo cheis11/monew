@@ -26,6 +26,8 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final InterestRepository interestRepository;
+    private final com.codeit.monew.article.repository.ArticleViewRepository articleViewRepository;
+    private final jakarta.persistence.EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public CursorPageResponseArticleDto getArticles(
@@ -45,24 +47,40 @@ public class ArticleService {
         String validOrderBy = ("viewCount".equals(orderBy) || "commentCount".equals(orderBy)) ? orderBy : "publishDate";
         String validDirection = "ASC".equalsIgnoreCase(direction) ? "ASC" : "DESC";
 
-        // Query keywords if interestId is provided
-        String searchKeyword = keyword;
-        if (interestId != null) {
+        // Query keywords
+        List<String> searchKeywords = new java.util.ArrayList<>();
+
+        if (keyword != null && !keyword.isBlank()) {
+            searchKeywords.add(keyword);
+        } else if (interestId != null) {
             Interest interest = interestRepository.findById(interestId)
                     .orElseThrow(() -> new NotFoundException("Interest not found"));
-            // If multiple keywords exist for interest, we technically need OR condition in
-            // spec,
-            // but for simplicity assuming the first one or concatenating.
-            // A more robust implementation would pass List<String> to spec.
-            if (!interest.getKeywords().isEmpty()) {
-                searchKeyword = interest.getKeywords().get(0); // Temporary simplification
+            searchKeywords.addAll(interest.getKeywords());
+        } else if (userId != null) {
+            List<Interest> subscribedInterests = entityManager.createQuery(
+                    "SELECT s.interest FROM Subscription s WHERE s.user.id = :userId", Interest.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+            if (subscribedInterests.isEmpty()) {
+                // Return empty response if user has no subscriptions
+                return CursorPageResponseArticleDto.builder()
+                        .content(java.util.Collections.emptyList())
+                        .nextCursor(null)
+                        .nextAfter(null)
+                        .size(0)
+                        .totalElements(0)
+                        .hasNext(false)
+                        .build();
+            }
+            for (Interest interest : subscribedInterests) {
+                searchKeywords.addAll(interest.getKeywords());
             }
         }
 
         // Fetch articles based on specification + limit (limit + 1 to check hasNext)
         Page<Article> articlePage = articleRepository.findAll(
                 ArticleSpecification.filterArticles(
-                        searchKeyword, interestId, sourceIn, publishDateFrom, publishDateTo, validOrderBy,
+                        searchKeywords, interestId, sourceIn, publishDateFrom, publishDateTo, validOrderBy,
                         validDirection, cursor, after),
                 PageRequest.of(0, limit + 1));
 
@@ -73,19 +91,27 @@ public class ArticleService {
         }
 
         List<ArticleDto> articleDtos = articles.stream()
-                .map(article -> ArticleDto.builder()
-                        .id(article.getId())
-                        .source(article.getSource())
-                        .sourceUrl(article.getSourceUrl())
-                        .title(article.getTitle())
-                        .publishDate(article.getPublishDate())
-                        .summary(article.getSummary())
-                        .commentCount(0) // Comments feature not implemented yet
-                        .viewCount(article.getViewCount())
-                        // viewedByMe is true if the user has a view record.
-                        // Can be optimized outside the loop, but skipping for brevity
-                        .viewedByMe(false)
-                        .build())
+                .map(article -> {
+                    long commentCount = entityManager.createQuery(
+                            "SELECT COUNT(c) FROM Comment c WHERE c.article.id = :articleId", Long.class)
+                            .setParameter("articleId", article.getId())
+                            .getSingleResult();
+                    boolean viewedByMe = false;
+                    if (userId != null) {
+                        viewedByMe = articleViewRepository.existsByArticleIdAndUserId(article.getId(), userId);
+                    }
+                    return ArticleDto.builder()
+                            .id(article.getId())
+                            .source(article.getSource())
+                            .sourceUrl(article.getSourceUrl())
+                            .title(article.getTitle())
+                            .publishDate(article.getPublishDate())
+                            .summary(article.getSummary())
+                            .commentCount(commentCount)
+                            .viewCount(article.getViewCount())
+                            .viewedByMe(viewedByMe)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         String nextCursor = null;
@@ -117,8 +143,23 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public ArticleDto getArticle(UUID articleId) {
+        return getArticle(articleId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public ArticleDto getArticle(UUID articleId, UUID userId) {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new NotFoundException("뉴스 기사를 찾을 수 없습니다."));
+
+        boolean viewedByMe = false;
+        if (userId != null) {
+            viewedByMe = articleViewRepository.existsByArticleIdAndUserId(articleId, userId);
+        }
+
+        long commentCount = entityManager.createQuery(
+                "SELECT COUNT(c) FROM Comment c WHERE c.article.id = :articleId", Long.class)
+                .setParameter("articleId", articleId)
+                .getSingleResult();
 
         return ArticleDto.builder()
                 .id(article.getId())
@@ -127,9 +168,9 @@ public class ArticleService {
                 .title(article.getTitle())
                 .publishDate(article.getPublishDate())
                 .summary(article.getSummary())
-                .commentCount(0)
+                .commentCount(commentCount)
                 .viewCount(article.getViewCount())
-                .viewedByMe(false) // This would require user context to determine
+                .viewedByMe(viewedByMe)
                 .build();
     }
 
