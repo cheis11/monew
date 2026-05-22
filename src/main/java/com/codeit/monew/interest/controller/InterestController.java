@@ -35,7 +35,7 @@ public class InterestController {
     @PostMapping
     public ResponseEntity<InterestDto> registerInterest(@Valid @RequestBody InterestRegisterRequest request) {
         InterestDto registeredInterest = interestService.registerInterest(request);
-        return ResponseEntity.ok(registeredInterest);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(registeredInterest);
     }
 
     @org.springframework.web.bind.annotation.GetMapping
