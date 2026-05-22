@@ -24,6 +24,9 @@ public class ArticleSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            // Filter out logically deleted articles
+            predicates.add(cb.isNull(root.get("deletedAt")));
+
             // 1. Keyword search (title or summary)
             if (keywords != null && !keywords.isEmpty()) {
                 List<Predicate> keywordPredicates = new ArrayList<>();
