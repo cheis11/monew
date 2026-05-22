@@ -19,4 +19,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     java.util.List<com.codeit.monew.interest.entity.Interest> findInterestsByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 
     java.util.List<Subscription> findByInterestId(UUID interestId);
+    java.util.List<Subscription> findByUserId(UUID userId);
 }
