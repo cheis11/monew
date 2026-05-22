@@ -76,13 +76,19 @@ public class InterestService {
                 }
 
                 java.util.List<InterestDto> interestDtos = interests.stream()
-                                .map(interest -> InterestDto.builder()
-                                                .id(interest.getId())
-                                                .name(interest.getName())
-                                                .keywords(interest.getKeywords())
-                                                .subscriberCount(interest.getSubscriberCount())
-                                                .subscribedByMe(false) // Subscription check logic goes here
-                                                .build())
+                                .map(interest -> {
+                                        boolean subscribed = false;
+                                        if (userId != null) {
+                                                subscribed = subscriptionRepository.existsByUserIdAndInterestId(userId, interest.getId());
+                                        }
+                                        return InterestDto.builder()
+                                                        .id(interest.getId())
+                                                        .name(interest.getName())
+                                                        .keywords(interest.getKeywords())
+                                                        .subscriberCount(interest.getSubscriberCount())
+                                                        .subscribedByMe(subscribed)
+                                                        .build();
+                                })
                                 .collect(java.util.stream.Collectors.toList());
 
                 String nextCursor = null;
