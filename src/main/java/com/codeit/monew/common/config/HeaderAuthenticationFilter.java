@@ -15,7 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String HEADER_NAME = "MoNew-Request-User-ID";
+    private static final String HEADER_NAME = "Monew-Request-User-ID";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
