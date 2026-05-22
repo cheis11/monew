@@ -8,9 +8,8 @@ import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.entity.Subscription;
 import com.codeit.monew.interest.repository.InterestRepository;
-import com.codeit.monew.notification.repository.NotificationRepository;
-import com.codeit.monew.notification.entity.Notification;
-import jakarta.persistence.EntityManager;
+import com.codeit.monew.interest.repository.SubscriptionRepository;
+import com.codeit.monew.notification.service.NotificationService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -31,13 +30,13 @@ public class ArticleSyncService {
     private final NaverNewsClient naverNewsClient;
     private final ArticleRepository articleRepository;
     private final InterestRepository interestRepository;
-    private final NotificationRepository notificationRepository;
-    private final EntityManager entityManager;
+    private final SubscriptionRepository subscriptionRepository;
+    private final NotificationService notificationService;
 
     private static final DateTimeFormatter NAVER_DATE_FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
     // Runs at the 0th minute of every hour
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void syncNewsArticles() {
         log.info("Starting scheduled news article sync from Naver API");
@@ -91,18 +90,14 @@ public class ArticleSyncService {
                         .count();
 
                 if (matchedCount > 0) {
-                    List<Subscription> subscriptions = entityManager.createQuery(
-                            "SELECT s FROM Subscription s WHERE s.interest.id = :interestId", Subscription.class)
-                            .setParameter("interestId", interest.getId())
-                            .getResultList();
+                    List<Subscription> subscriptions = subscriptionRepository.findByInterestId(interest.getId());
                     for (Subscription sub : subscriptions) {
-                        Notification notification = Notification.builder()
-                                .user(sub.getUser())
-                                .content(String.format("[%s]와 관련된 기사가 %d건 등록되었습니다.", interest.getName(), matchedCount))
-                                .resourceType("interest")
-                                .resourceId(interest.getId())
-                                .build();
-                        notificationRepository.save(notification);
+                        notificationService.createNotification(
+                                sub.getUser(),
+                                String.format("[%s]와 관련된 기사가 %d건 등록되었습니다.", interest.getName(), matchedCount),
+                                "interest",
+                                interest.getId()
+                        );
                     }
                 }
             }

@@ -20,6 +20,8 @@ import lombok.ToString;
 @ToString
 @Table(name = "comment")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@org.hibernate.annotations.SQLDelete(sql = "UPDATE comment SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
 public class Comment extends AbstractEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
