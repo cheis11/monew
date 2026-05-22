@@ -7,6 +7,18 @@ import com.codeit.monew.user.dto.UserLoginRequest;
 import com.codeit.monew.user.dto.UserRegisterRequest;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
+import com.codeit.monew.user.dto.UserActivityDto;
+import com.codeit.monew.interest.repository.SubscriptionRepository;
+import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.comment.repository.CommentLikeRepository;
+import com.codeit.monew.article.repository.ArticleViewRepository;
+import com.codeit.monew.comment.dto.CommentActivityDto;
+import com.codeit.monew.comment.dto.CommentLikeActivityDto;
+import com.codeit.monew.article.dto.ArticleViewDto;
+import com.codeit.monew.interest.dto.SubscriptionDto;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final ArticleViewRepository articleViewRepository;
 
     @Transactional
     public UserDto registerUser(UserRegisterRequest request) {
@@ -98,5 +114,77 @@ public class UserService {
             // Logging can be added here
             System.out.println("Restored " + restoredCount + " users deleted before " + threshold);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public UserActivityDto getUserActivity(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("유저 정보 없음"));
+
+        List<SubscriptionDto> subscriptions = subscriptionRepository.findByUserId(userId).stream()
+                .map(sub -> SubscriptionDto.builder()
+                        .id(sub.getId())
+                        .interestId(sub.getInterest().getId())
+                        .interestName(sub.getInterest().getName())
+                        .interestKeywords(sub.getInterest().getKeywords())
+                        .interestSubscriberCount(sub.getInterest().getSubscriberCount())
+                        .createdAt(sub.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<CommentActivityDto> comments = commentRepository.findByUserId(userId).stream()
+                .map(comment -> CommentActivityDto.builder()
+                        .id(comment.getId())
+                        .articleId(comment.getArticle().getId())
+                        .articleTitle(comment.getArticle().getTitle())
+                        .userId(comment.getUser().getId())
+                        .userNickname(comment.getUser().getNickname())
+                        .content(comment.getContent())
+                        .likeCount(comment.getLikeCount())
+                        .createdAt(comment.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<CommentLikeActivityDto> commentLikes = commentLikeRepository.findByUserId(userId).stream()
+                .map(like -> CommentLikeActivityDto.builder()
+                        .id(like.getId())
+                        .createdAt(like.getCreatedAt())
+                        .commentId(like.getComment().getId())
+                        .articleId(like.getComment().getArticle().getId())
+                        .articleTitle(like.getComment().getArticle().getTitle())
+                        .commentUserId(like.getComment().getUser().getId())
+                        .commentUserNickname(like.getComment().getUser().getNickname())
+                        .commentContent(like.getComment().getContent())
+                        .commentLikeCount(like.getComment().getLikeCount())
+                        .commentCreatedAt(like.getComment().getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<ArticleViewDto> articleViews = articleViewRepository.findByUserId(userId).stream()
+                .map(view -> ArticleViewDto.builder()
+                        .id(view.getId())
+                        .viewedBy(view.getUser().getId())
+                        .createdAt(view.getCreatedAt())
+                        .articleId(view.getArticle().getId())
+                        .source(view.getArticle().getSource())
+                        .sourceUrl(view.getArticle().getSourceUrl())
+                        .articleTitle(view.getArticle().getTitle())
+                        .articlePublishedDate(view.getArticle().getPublishDate())
+                        .articleSummary(view.getArticle().getSummary())
+                        .articleCommentCount(commentRepository.countByArticleId(view.getArticle().getId()))
+                        .articleViewCount(view.getArticle().getViewCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        return UserActivityDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .createdAt(user.getCreatedAt())
+                .subscriptions(subscriptions)
+                .comments(comments)
+                .commentLikes(commentLikes)
+                .articleViews(articleViews)
+                .build();
     }
 }

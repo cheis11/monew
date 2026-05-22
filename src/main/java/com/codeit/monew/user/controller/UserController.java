@@ -23,7 +23,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDto> registerUser(@Valid @RequestBody UserRegisterRequest request) {
         UserDto registeredUser = userService.registerUser(request);
-        return ResponseEntity.ok(registeredUser);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(registeredUser);
     }
 
     @PostMapping("/login")
@@ -36,7 +36,7 @@ public class UserController {
     public ResponseEntity<UserDto> updateUser(
             @org.springframework.web.bind.annotation.PathVariable java.util.UUID userId,
             @Valid @RequestBody com.codeit.monew.user.dto.UserUpdateRequest request,
-            @org.springframework.web.bind.annotation.RequestHeader(value = "MoNew-Request-User-ID", required = false) java.util.UUID headerUserId) {
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID headerUserId) {
         
         // Authorization check
         if (headerUserId == null || !headerUserId.equals(userId)) {
@@ -50,7 +50,7 @@ public class UserController {
     @org.springframework.web.bind.annotation.DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(
             @org.springframework.web.bind.annotation.PathVariable java.util.UUID userId,
-            @org.springframework.web.bind.annotation.RequestHeader(value = "MoNew-Request-User-ID", required = false) java.util.UUID headerUserId) {
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID headerUserId) {
         
         // Authorization check
         if (headerUserId == null || !headerUserId.equals(userId)) {
@@ -64,7 +64,7 @@ public class UserController {
     @org.springframework.web.bind.annotation.DeleteMapping("/{userId}/hard")
     public ResponseEntity<Void> hardDeleteUser(
             @org.springframework.web.bind.annotation.PathVariable java.util.UUID userId,
-            @org.springframework.web.bind.annotation.RequestHeader(value = "MoNew-Request-User-ID", required = false) java.util.UUID headerUserId) {
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID headerUserId) {
         
         // Authorization check
         if (headerUserId == null || !headerUserId.equals(userId)) {
