@@ -27,6 +27,8 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final InterestRepository interestRepository;
     private final com.codeit.monew.interest.repository.SubscriptionRepository subscriptionRepository;
+    private final com.codeit.monew.comment.repository.CommentRepository commentRepository;
+    private final com.codeit.monew.article.repository.ArticleViewRepository articleViewRepository;
 
     @Transactional(readOnly = true)
     public CursorPageResponseArticleDto getArticles(
@@ -87,19 +89,24 @@ public class ArticleService {
         }
 
         List<ArticleDto> articleDtos = articles.stream()
-                .map(article -> ArticleDto.builder()
-                        .id(article.getId())
-                        .source(article.getSource())
-                        .sourceUrl(article.getSourceUrl())
-                        .title(article.getTitle())
-                        .publishDate(article.getPublishDate())
-                        .summary(article.getSummary())
-                        .commentCount(0) // Comments feature not implemented yet
-                        .viewCount(article.getViewCount())
-                        // viewedByMe is true if the user has a view record.
-                        // Can be optimized outside the loop, but skipping for brevity
-                        .viewedByMe(false)
-                        .build())
+                .map(article -> {
+                    boolean viewedByMe = false;
+                    if (userId != null) {
+                        viewedByMe = articleViewRepository.existsByArticleIdAndUserId(article.getId(), userId);
+                    }
+                    long commentCount = commentRepository.countByArticleId(article.getId());
+                    return ArticleDto.builder()
+                            .id(article.getId())
+                            .source(article.getSource())
+                            .sourceUrl(article.getSourceUrl())
+                            .title(article.getTitle())
+                            .publishDate(article.getPublishDate())
+                            .summary(article.getSummary())
+                            .commentCount(commentCount)
+                            .viewCount(article.getViewCount())
+                            .viewedByMe(viewedByMe)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         String nextCursor = null;
@@ -130,9 +137,16 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public ArticleDto getArticle(UUID articleId) {
+    public ArticleDto getArticle(UUID articleId, UUID userId) {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new NotFoundException("뉴스 기사를 찾을 수 없습니다."));
+
+        boolean viewedByMe = false;
+        if (userId != null) {
+            viewedByMe = articleViewRepository.existsByArticleIdAndUserId(articleId, userId);
+        }
+
+        long commentCount = commentRepository.countByArticleId(articleId);
 
         return ArticleDto.builder()
                 .id(article.getId())
@@ -141,9 +155,9 @@ public class ArticleService {
                 .title(article.getTitle())
                 .publishDate(article.getPublishDate())
                 .summary(article.getSummary())
-                .commentCount(0)
+                .commentCount(commentCount)
                 .viewCount(article.getViewCount())
-                .viewedByMe(false) // This would require user context to determine
+                .viewedByMe(viewedByMe)
                 .build();
     }
 
