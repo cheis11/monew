@@ -12,4 +12,6 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, UUID> 
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @org.springframework.data.jpa.repository.Query(value = "DELETE FROM comment_like WHERE comment_id = :commentId", nativeQuery = true)
     void deleteByCommentId(@org.springframework.data.repository.query.Param("commentId") UUID commentId);
+
+    java.util.List<CommentLike> findByUserId(UUID userId);
 }
