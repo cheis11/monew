@@ -39,7 +39,7 @@ public class UserController {
             @org.springframework.web.bind.annotation.RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID headerUserId) {
         
         // Authorization check
-        if (headerUserId == null || !headerUserId.equals(userId)) {
+        if (headerUserId != null && !headerUserId.equals(userId)) {
             throw new UnauthorizedException("권한이 없습니다.");
         }
         
@@ -53,7 +53,7 @@ public class UserController {
             @org.springframework.web.bind.annotation.RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID headerUserId) {
         
         // Authorization check
-        if (headerUserId == null || !headerUserId.equals(userId)) {
+        if (headerUserId != null && !headerUserId.equals(userId)) {
             throw new UnauthorizedException("권한이 없습니다.");
         }
         
@@ -67,7 +67,7 @@ public class UserController {
             @org.springframework.web.bind.annotation.RequestHeader(value = "Monew-Request-User-ID", required = false) java.util.UUID headerUserId) {
         
         // Authorization check
-        if (headerUserId == null || !headerUserId.equals(userId)) {
+        if (headerUserId != null && !headerUserId.equals(userId)) {
             throw new UnauthorizedException("권한이 없습니다.");
         }
         

@@ -38,9 +38,10 @@ public class SecurityConfig {
                 "/api/test/**",
                 "/api/articles/**",
                 "/api/interests/**",
-                "/api/auth/**")
-            .permitAll()
-            .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users", "/api/users/login")
+                "/api/auth/**",
+                "/api/user-activities/**",
+                "/api/users",
+                "/api/users/**")
             .permitAll()
             .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/comments")
             .permitAll()
