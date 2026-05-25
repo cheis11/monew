@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArticleSyncService {
 
     private final NaverNewsClient naverNewsClient;
+    private final com.codeit.monew.article.client.hankyung.HankyungNewsClient hankyungNewsClient;
     private final ArticleRepository articleRepository;
     private final InterestRepository interestRepository;
     private final SubscriptionRepository subscriptionRepository;
@@ -36,10 +37,10 @@ public class ArticleSyncService {
     private static final DateTimeFormatter NAVER_DATE_FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
     // Runs at the 0th minute of every hour
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 * * * * *")
     @Transactional
     public void syncNewsArticles() {
-        log.info("Starting scheduled news article sync from Naver API");
+        log.info("Starting scheduled news article sync");
 
         // Collect all unique keywords from all interests
         List<Interest> interests = interestRepository.findAll();
@@ -55,6 +56,7 @@ public class ArticleSyncService {
 
         Set<Article> newlySavedArticles = new java.util.HashSet<>();
 
+        // 1. Sync from Naver API
         for (String keyword : keywords) {
             try {
                 int totalFetched = 0;
@@ -76,10 +78,49 @@ public class ArticleSyncService {
                     // Added a sleep to prevent hitting Naver API rate limits too quickly
                     Thread.sleep(100);
                 }
-                log.info("Fetched {} articles for keyword: {}", totalFetched, keyword);
+                log.info("Fetched {} articles from Naver for keyword: {}", totalFetched, keyword);
             } catch (Exception e) {
-                log.error("Failed to sync news for keyword: {}", keyword, e);
+                log.error("Failed to sync Naver news for keyword: {}", keyword, e);
             }
+        }
+
+        // 2. Sync from Hankyung RSS feed
+        try {
+            log.info("Starting news article sync from Hankyung RSS");
+            List<com.codeit.monew.article.client.hankyung.HankyungNewsClient.HankyungNewsItem> hankyungItems = hankyungNewsClient.fetchNews();
+            int hankyungSavedCount = 0;
+            for (com.codeit.monew.article.client.hankyung.HankyungNewsClient.HankyungNewsItem item : hankyungItems) {
+                if (item.link() == null || item.link().isBlank() || articleRepository.existsBySourceUrl(item.link())) {
+                    continue;
+                }
+
+                // Filter by interest keywords
+                String titleLower = item.title() != null ? item.title().toLowerCase() : "";
+                boolean matchesKeyword = false;
+                for (String keyword : keywords) {
+                    if (keyword != null && !keyword.isBlank() && titleLower.contains(keyword.toLowerCase())) {
+                        matchesKeyword = true;
+                        break;
+                    }
+                }
+
+                if (matchesKeyword) {
+                    Article article = Article.builder()
+                            .source("HANKYUNG")
+                            .sourceUrl(item.link())
+                            .title(item.title())
+                            .summary("") // Hankyung RSS has no description/summary field in RSS items
+                            .publishDate(item.pubDate())
+                            .build();
+
+                    Article savedArticle = articleRepository.save(article);
+                    newlySavedArticles.add(savedArticle);
+                    hankyungSavedCount++;
+                }
+            }
+            log.info("Finished news article sync from Hankyung RSS. Saved {} articles.", hankyungSavedCount);
+        } catch (Exception e) {
+            log.error("Failed to sync news from Hankyung RSS", e);
         }
 
         // Create notifications for subscribed interests

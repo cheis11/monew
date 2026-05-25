@@ -57,7 +57,16 @@ public class ArticleSpecification {
 
             // 3. Source filter
             if (sourceIn != null && !sourceIn.isBlank()) {
-                predicates.add(cb.equal(root.get("source"), sourceIn));
+                String[] sources = sourceIn.split(",");
+                java.util.List<String> cleanSources = new java.util.ArrayList<>();
+                for (String s : sources) {
+                    if (s != null && !s.isBlank()) {
+                        cleanSources.add(s.trim());
+                    }
+                }
+                if (!cleanSources.isEmpty()) {
+                    predicates.add(root.get("source").in(cleanSources));
+                }
             }
 
             // 4. Date range filter
