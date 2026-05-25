@@ -178,7 +178,13 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public List<String> getSources() {
-        return articleRepository.findDistinctSource();
+        List<String> dbSources = articleRepository.findDistinctSource();
+        List<String> defaultSources = List.of("NAVER", "HANKYUNG", "CHOSUN", "YONHAP");
+        
+        java.util.Set<String> allSources = new java.util.LinkedHashSet<>(defaultSources);
+        allSources.addAll(dbSources);
+        
+        return new java.util.ArrayList<>(allSources);
     }
 
     @Transactional
