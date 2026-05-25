@@ -30,6 +30,7 @@ public class ArticleSyncService {
     private final NaverNewsClient naverNewsClient;
     private final com.codeit.monew.article.client.hankyung.HankyungNewsClient hankyungNewsClient;
     private final com.codeit.monew.article.client.chosun.ChosunNewsClient chosunNewsClient;
+    private final com.codeit.monew.article.client.yonhap.YonhapNewsClient yonhapNewsClient;
     private final ArticleRepository articleRepository;
     private final InterestRepository interestRepository;
     private final SubscriptionRepository subscriptionRepository;
@@ -161,6 +162,46 @@ public class ArticleSyncService {
             log.info("Finished news article sync from Chosun RSS. Saved {} articles.", chosunSavedCount);
         } catch (Exception e) {
             log.error("Failed to sync news from Chosun RSS", e);
+        }
+
+        // 4. Sync from Yonhap RSS feed
+        try {
+            log.info("Starting news article sync from Yonhap RSS");
+            List<com.codeit.monew.article.client.yonhap.YonhapNewsClient.YonhapNewsItem> yonhapItems = yonhapNewsClient.fetchNews();
+            int yonhapSavedCount = 0;
+            for (com.codeit.monew.article.client.yonhap.YonhapNewsClient.YonhapNewsItem item : yonhapItems) {
+                if (item.link() == null || item.link().isBlank() || articleRepository.existsBySourceUrl(item.link())) {
+                    continue;
+                }
+
+                // Filter by interest keywords
+                String titleLower = item.title() != null ? item.title().toLowerCase() : "";
+                boolean matchesKeyword = false;
+                for (String keyword : keywords) {
+                    if (keyword != null && !keyword.isBlank() && titleLower.contains(keyword.toLowerCase())) {
+                        matchesKeyword = true;
+                        break;
+                    }
+                }
+
+                if (matchesKeyword) {
+                    String cleanSummary = stripHtmlTags(item.description());
+                    Article article = Article.builder()
+                            .source("YONHAP")
+                            .sourceUrl(item.link())
+                            .title(item.title())
+                            .summary(cleanSummary)
+                            .publishDate(item.pubDate())
+                            .build();
+
+                    Article savedArticle = articleRepository.save(article);
+                    newlySavedArticles.add(savedArticle);
+                    yonhapSavedCount++;
+                }
+            }
+            log.info("Finished news article sync from Yonhap RSS. Saved {} articles.", yonhapSavedCount);
+        } catch (Exception e) {
+            log.error("Failed to sync news from Yonhap RSS", e);
         }
 
         // Create notifications for subscribed interests
