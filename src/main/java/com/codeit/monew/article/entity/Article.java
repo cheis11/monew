@@ -23,7 +23,7 @@ public class Article extends AbstractEntity {
     @Column(nullable = false)
     private String source;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 1000)
     private String sourceUrl;
 
     @Column(nullable = false)

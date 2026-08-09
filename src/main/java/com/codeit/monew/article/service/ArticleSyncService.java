@@ -37,11 +37,17 @@ public class ArticleSyncService {
     private final NotificationService notificationService;
 
     private static final DateTimeFormatter NAVER_DATE_FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
+    private final java.util.concurrent.atomic.AtomicBoolean isSyncing = new java.util.concurrent.atomic.AtomicBoolean(false);
 
     // Runs once a day at midnight
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void syncNewsArticles() {
+        if (!isSyncing.compareAndSet(false, true)) {
+            log.info("Sync is already in progress. Skipping.");
+            return;
+        }
+        try {
         log.info("Starting scheduled news article sync");
 
         // Collect all unique keywords from all interests
@@ -226,6 +232,9 @@ public class ArticleSyncService {
         }
 
         log.info("Finished scheduled news article sync");
+        } finally {
+            isSyncing.set(false);
+        }
     }
 
     private boolean matchesInterest(Article article, Interest interest) {
