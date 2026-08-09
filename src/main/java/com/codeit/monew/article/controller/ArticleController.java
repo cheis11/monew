@@ -26,6 +26,7 @@ public class ArticleController {
 
     private final ArticleViewService articleViewService;
     private final ArticleService articleService;
+    private final com.codeit.monew.article.service.ArticleSyncService articleSyncService;
 
     @GetMapping
     public ResponseEntity<CursorPageResponseArticleDto> getArticles(
@@ -117,5 +118,11 @@ public class ArticleController {
 
         java.util.List<com.codeit.monew.article.dto.ArticleRestoreResultDto> results = articleService.restoreArticles(fromTime, toTime);
         return ResponseEntity.ok(results);
+    }
+
+    @PostMapping("/sync")
+    public ResponseEntity<Void> syncArticlesManually() {
+        articleSyncService.syncNewsArticles();
+        return ResponseEntity.ok().build();
     }
 }
