@@ -39,7 +39,7 @@ public class ArticleSyncService {
     private static final DateTimeFormatter NAVER_DATE_FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
     // Runs at the 0th minute of every hour
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void syncNewsArticles() {
         log.info("Starting scheduled news article sync");
