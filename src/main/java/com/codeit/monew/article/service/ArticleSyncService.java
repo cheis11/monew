@@ -41,7 +41,6 @@ public class ArticleSyncService {
 
     // Runs once a day at midnight
     @Scheduled(cron = "0 0 0 * * *")
-    @Transactional
     public void syncNewsArticles() {
         if (!isSyncing.compareAndSet(false, true)) {
             log.info("Sync is already in progress. Skipping.");
@@ -121,8 +120,12 @@ public class ArticleSyncService {
                             .publishDate(item.pubDate())
                             .build();
 
-                    Article savedArticle = articleRepository.save(article);
-                    newlySavedArticles.add(savedArticle);
+                    try {
+                        Article savedArticle = articleRepository.save(article);
+                        newlySavedArticles.add(savedArticle);
+                    } catch (Exception e) {
+                        log.debug("Duplicate or error saving article: {}", article.getSourceUrl());
+                    }
                     hankyungSavedCount++;
                 }
             }
@@ -160,8 +163,12 @@ public class ArticleSyncService {
                             .publishDate(item.pubDate())
                             .build();
 
-                    Article savedArticle = articleRepository.save(article);
-                    newlySavedArticles.add(savedArticle);
+                    try {
+                        Article savedArticle = articleRepository.save(article);
+                        newlySavedArticles.add(savedArticle);
+                    } catch (Exception e) {
+                        log.debug("Duplicate or error saving article: {}", article.getSourceUrl());
+                    }
                     chosunSavedCount++;
                 }
             }
@@ -200,8 +207,12 @@ public class ArticleSyncService {
                             .publishDate(item.pubDate())
                             .build();
 
-                    Article savedArticle = articleRepository.save(article);
-                    newlySavedArticles.add(savedArticle);
+                    try {
+                        Article savedArticle = articleRepository.save(article);
+                        newlySavedArticles.add(savedArticle);
+                    } catch (Exception e) {
+                        log.debug("Duplicate or error saving article: {}", article.getSourceUrl());
+                    }
                     yonhapSavedCount++;
                 }
             }
@@ -282,8 +293,12 @@ public class ArticleSyncService {
                     .publishDate(pubDate)
                     .build();
 
-            Article savedArticle = articleRepository.save(article);
-            saved.add(savedArticle);
+            try {
+                Article savedArticle = articleRepository.save(article);
+                saved.add(savedArticle);
+            } catch (Exception e) {
+                log.debug("Duplicate or error saving Naver article: {}", originallink);
+            }
         }
         return saved;
     }
